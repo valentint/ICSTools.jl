@@ -3,8 +3,8 @@ module ICS
 using DataFrames: DataFrame
 using Statistics
 using LinearAlgebra
-using Printf
 using Robustbase
+using Printf
 
 import Base: show
 
