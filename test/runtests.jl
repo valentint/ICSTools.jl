@@ -34,5 +34,20 @@ using Test
     @test isapprox(cc.location, [1.5377049180327866, 1.780327868852459, 1.6868852459016392])
     @test isapprox(cc.scatter, [1.2208968424415276 0.05473721495128016 0.1265444496168565; 0.05473721495128016 1.242702149861826 0.15178261962426998; 0.1265444496168565 0.15178261962426998 1.1541431351037628])
     end
-end
 
+    @testset "ICSModel" begin
+    using Robustbase
+    X = hbk[:,1:3]
+
+    ics = ICSModel();
+    scores = fit_predict!(ics, X);
+    ics
+    @test isapprox(ics.kurtosis_, [23.465141777305032, 4.708104428408411, 2.917680272932387])
+    @test isapprox(ics.skewness_, [0.01805498369427433, 0.33956728286246396, 0.012932251292713692])
+
+    ics = ICSModel(algorithm="standard");
+    scores = fit_predict!(ics, X);
+    @test isapprox(ics.kurtosis_, [23.465141777305032, 4.708104428408411, 2.917680272932387])
+    @test isapprox(ics.skewness_, [0.01805498369427433, 0.33956728286246396, 0.012932251292713692])
+end
+end
