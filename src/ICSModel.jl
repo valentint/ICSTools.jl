@@ -1,5 +1,6 @@
-# Assume Scatter, cov, covW, covAxis, cov4, sort_eigenvalues_eigenvectors,
-# sqrt_symmetric_matrix, _sign_max, _check_gen_kurtosis are already defined elsewhere.
+## Assume Scatter, cov, covW, covAxis, cov4, 
+##  sort_eigenvalues_eigenvectors, sqrt_symmetric_matrix, 
+##  sign_max, check_gen_kurtosis are already defined elsewhere.
 
 mutable struct ICSModel
     S1::Function
@@ -291,8 +292,11 @@ function _compute_transformation_qr(model::ICSModel, X, S1_X)
     order_rows = sortperm(norms, rev=true)
     X_reordered = X_centered[order_rows, :]
 
-    F = qr(X_reordered / sqrt(n-1); pivot=true)
-    Q, R, pvt = Matrix(F.Q), F.R, F.prow
+    ##  F = qr(X_reordered / sqrt(n-1); pivot=true)
+    ##  Q, R, pvt = Matrix(F.Q), F.R, F.prow
+
+    F = qr(X_reordered / sqrt(n-1), ColumnNorm())
+    Q, R, pvt = Matrix(F.Q), F.R, F.jpvt
 
     d = (n-1) .* sum(Q.^2, dims=2)
 
@@ -309,7 +313,7 @@ function _compute_transformation_qr(model::ICSModel, X, S1_X)
     S2_Y = cf * (n-1)/n * (Q .* (d.^α))' * Q
 
     evals, evecs = eigen(Symmetric(S2_Y))
-    _check_gen_kurtosis(evals)
+    check_gen_kurtosis(evals)
     evals, evecs = sort_eigenvalues_eigenvectors(evals, evecs)
 
     W = (R \ evecs)'   # solve linear system
@@ -337,7 +341,7 @@ function _fix_component_signs(model::ICSModel, X, W)
         W_final = W .* signs
         return W_final, gen_skewness
     else
-        row_signs = [_sign_max(W[i,:]) for i in 1:size(W,1)]
+        row_signs = [sign_max(W[i,:]) for i in 1:size(W,1)]
         row_norms = sqrt.(sum(W.^2, dims=2))
         W_final = (W' ./ (row_signs .* row_norms))'
         return W_final, nothing

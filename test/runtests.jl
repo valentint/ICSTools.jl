@@ -41,11 +41,16 @@ using Test
 
     ics = ICSModel();
     scores = fit_predict!(ics, X);
-    ics
+    display(ics)
     @test isapprox(ics.kurtosis_, [23.465141777305032, 4.708104428408411, 2.917680272932387])
     @test isapprox(ics.skewness_, [0.01805498369427433, 0.33956728286246396, 0.012932251292713692])
 
     ics = ICSModel(algorithm="standard");
+    scores = fit_predict!(ics, X);
+    @test isapprox(ics.kurtosis_, [23.465141777305032, 4.708104428408411, 2.917680272932387])
+    @test isapprox(ics.skewness_, [0.01805498369427433, 0.33956728286246396, 0.012932251292713692])
+
+    ics = ICSModel(algorithm="QR");
     scores = fit_predict!(ics, X);
     @test isapprox(ics.kurtosis_, [23.465141777305032, 4.708104428408411, 2.917680272932387])
     @test isapprox(ics.skewness_, [0.01805498369427433, 0.33956728286246396, 0.012932251292713692])
