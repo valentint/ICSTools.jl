@@ -5,13 +5,13 @@ using Statistics
 using LinearAlgebra
 using Robustbase
 using Printf
+using StatsPlots
 
 import Base: show
 
-greet() = print("Hello World from ICS!")
-
 include("Scatter.jl")
 include("ICSModel.jl")
+include("plots.jl")
 include("utils.jl")
 
 export Scatter,
@@ -27,7 +27,7 @@ export Scatter,
        fit!,
        predict,
        fit_predict!,
-
-       greet
+       scree_plot,
+       outlier_plot
 
 end

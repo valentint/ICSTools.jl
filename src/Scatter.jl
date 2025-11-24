@@ -93,16 +93,16 @@ function covW(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, alpha=1
         throw(ArgumentError("X must be at least bi-variate"))
     end
 
-    # Calculate mean and covariance
+    ## Calculate mean and covariance
     X_means = vec(mean(X, dims=1))
     X_cov = cov(X, dims=1)
 
-    # Mahalanobis distance squared
+    ## Mahalanobis distance squared
     inv_cov = inv(X_cov)
     dists = [dot(x .- X_means, inv_cov * (x .- X_means)) for x in eachrow(X)]
     weights = dists .^ alpha
 
-    # Center data
+    ## Center data
     X_centered = X .- X_means'
     X_covW = cf / n * (X_centered' * Diagonal(weights) * X_centered)
 
@@ -283,7 +283,8 @@ function tcov_original(X::Union{Matrix{Float64}, DataFrame}, beta=2)
 end
 
 """
-    mcd_raw(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, alpha=0.5)
+    mcd_raw(X::Union{Matrix{Float64}, DataFrame}; 
+        location::Bool=true, alpha=0.5, nsamp::Union{Int, String})
 
 Compute a raw MCD estimate.
 
@@ -291,15 +292,24 @@ Compute a raw MCD estimate.
     X::Union{Matrix{Float64}, DataFrame}: The data matrix.
     location::Bool (default=true): Whether to include the mean location.
     alpha: 
+    nsamp:
 
 # Returns:
     Scatter: An object containing the location and custom weighted scatter matrix.
 """
-function mcd_raw(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, alpha=0.5)
+function mcd_raw(X::Union{Matrix{Float64}, DataFrame}; 
+        location::Bool=true, alpha=0.5, nsamp::Union{Int, String}=500)
 
-    mcd = Robustbase.DetMcd(alpha=0.5, reweighting=false)
-    Robustbase.fit!(mcd, X)
-
+    if nsamp isa String && nsamp == "deterministic"
+        mcd = Robustbase.DetMcd(alpha=alpha, reweighting=false)
+        Robustbase.fit!(mcd, X)
+    elseif nsamp isa Number
+        mcd = Robustbase.CovMcd(alpha=alpha, n_initial_subsets=nsamp, reweighting=false)
+        Robustbase.fit!(mcd, X)
+    else
+        error("Invalid 'nsamp': can be either 'deterministic' or a number!")        
+    end    
+    
     if location 
         location = Robustbase.location(mcd) 
     else 
@@ -310,7 +320,8 @@ function mcd_raw(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, alph
 end
 
 """
-    mcd_rwt(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, alpha=0.5)
+    mcd_rwt(X::Union{Matrix{Float64}, DataFrame}; 
+        location::Bool=true, alpha=0.5, nsamp::Union{Int, String})
 
 Compute a reweighted MCD estimate.
 
@@ -318,14 +329,23 @@ Compute a reweighted MCD estimate.
     X::Union{Matrix{Float64}, DataFrame}: The data matrix.
     location::Bool (default=true): Whether to include the mean location.
     alpha: 
+    nsamp:
 
 # Returns:
     Scatter: An object containing the location and custom weighted scatter matrix.
 """
-function mcd_rwt(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, alpha=0.5)
+function mcd_rwt(X::Union{Matrix{Float64}, DataFrame}; 
+        location::Bool=true, alpha=0.5, nsamp::Union{Int, String}=500)
 
-    mcd = Robustbase.DetMcd(alpha=0.5, reweighting=true)
-    Robustbase.fit!(mcd, X)
+    if nsamp isa String && nsamp == "deterministic"
+        mcd = Robustbase.DetMcd(alpha=alpha, reweighting=true)
+        Robustbase.fit!(mcd, X)
+    elseif nsamp isa Number
+        mcd = Robustbase.CovMcd(alpha=alpha, n_initial_subsets=nsamp, reweighting=true)
+        Robustbase.fit!(mcd, X)
+    else
+        error("Invalid 'nsamp': can be either 'deterministic' or a number!")        
+    end    
 
     if location 
         location = Robustbase.location(mcd) 

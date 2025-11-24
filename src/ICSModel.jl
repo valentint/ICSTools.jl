@@ -119,30 +119,68 @@ function Base.show(io::IO, model::ICSModel)
     println(io, "center: ", model.center)
     println(io, "fix_signs: ", model.fix_signs)
 
-    println(io, "\nThe generalized kurtosis measures of the components are:")
-    if !isnothing(model.kurtosis_)
-        for (i, val) in enumerate(model.kurtosis_)
-            println(io, "IC_$(i): ", @sprintf("%.4f", val))
-        end
+    if isnothing(model.kurtosis_)
+        println()
+        println("Model is not fitted yet!")
     else
-        println(io, "None")
-    end
-
-    println(io, "\nThe coefficient matrix of the linear transformation is:")
-    if !isnothing(model.W_)
-        feature_names = isnothing(model.feature_names_in_) ?
-                        ["Feature_$i" for i in 1:size(model.W_,2)] :
-                        model.feature_names_in_
-        # header row
-        header = "     " * join([@sprintf("%12s", name) for name in feature_names], " ")
-        println(io, header)
-
-        for (i, row) in enumerate(eachrow(model.W_))
-            row_str = join([@sprintf("%12.5f", val) for val in row], " ")
-            println(io, @sprintf("IC_%-3d %s", i, row_str))
+        p = length(model.kurtosis_)
+        if p <= 6
+            select = 1:p
+        else
+            select = vcat(1:3, ((p-2):p))
         end
-    else
-        println(io, "None")
+        println(io, "\nThe generalized kurtosis measures of the components are:")
+        if p <= 6
+            for (i, val) in enumerate(model.kurtosis_)
+                println(io, "IC_$(i): ", @sprintf("%.4f", val))
+            end
+        else
+            for (i, val) in enumerate(model.kurtosis_[1:3])
+                println(io, "IC_$(i): ", @sprintf("%.4f", val))
+            end
+            println(io, "... ", @sprintf("%4s", "    "))
+            for (i, val) in enumerate(model.kurtosis_[(p-2):p])
+                println(io, "IC_$((p-3)+i): ", @sprintf("%.4f", val))
+            end
+        end
+
+        println(io, "\nThe coefficient matrix of the linear transformation is:")
+        if !isnothing(model.W_)
+            feature_names = isnothing(model.feature_names_in_) ?
+                            ["Feature_$i" for i in 1:p] :
+                            model.feature_names_in_
+            if p <- 6
+                # header row
+                header = "     " * join([@sprintf("%12s", name) for name in feature_names], " ")
+                println(io, header)
+
+                for (i, row) in enumerate(eachrow(model.W_))
+                    row_str = join([@sprintf("%12.5f", val) for val in row], " ")
+                    println(io, @sprintf("IC_%-3d %s", i, row_str))
+                end
+            else
+                # header row
+                select = vcat(1:3, (p-2):p)
+                header1 = "     " * join([@sprintf("%13s", name) for name in feature_names[1:3]], " ")
+                header2 = join([@sprintf("%13s", name) for name in feature_names[(p-2):p]], " ")
+                println(io, header1,  @sprintf("%13s", "..."), header2)
+
+                for (i, row) in enumerate(eachrow(model.W_)[1:3])
+                    row_str1 = join([@sprintf("%14.5f", val) for val in row[1:3]], " ")
+                    row_str2 = join([@sprintf("%14.5f", val) for val in row[(p-2):p]], " ")
+                    println(io, @sprintf("IC_%-3d %s %7s %s", i, row_str1, "...", row_str2))
+                end
+                
+                println("...")
+                for (i, row) in enumerate(eachrow(model.W_)[(p-2):p])
+                    row_str1 = join([@sprintf("%14.5f", val) for val in row[1:3]], " ")
+                    row_str2 = join([@sprintf("%14.5f", val) for val in row[(p-2):p]], " ")
+                    println(io, @sprintf("IC_%-3d %s %7s %s", p-3+i, row_str1, "...", row_str2))
+                end
+            end
+        else
+            println(io, "None")
+        end
     end
 end
 

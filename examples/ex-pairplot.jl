@@ -35,7 +35,13 @@ table2 = (;
     z = randn(10000),
 )
 
-fig = pairplot(table1, table2)
+table3 = (;
+    x = 4 .+ randn(10000),
+    y = 5 .+ randn(10000),
+    z = 2 .+ randn(10000),
+)
+
+fig = pairplot(table1, table2, table3)
 
 ##=====================================================
 
@@ -72,3 +78,28 @@ pairplot(df, labels = Dict(
     # LaTeX String
     :γ => L"\frac{a}{b}",
 ))
+
+
+using CairoMakie
+using PairPlots
+
+# The simplest table format is just a named tuple of vectors.
+# You can also pass a DataFrame, or any other Tables.jl compatible object.
+table1 = (;
+    x = randn(10000),
+    y = randn(10000),
+)
+
+table2 = (;
+    x = 1 .+ randn(10000),
+    y = 2 .+ randn(10000),
+    z = randn(10000),
+)
+
+table3 = (;
+    x = 4 .+ randn(10000),
+    y = 5 .+ randn(10000),
+    z = 2 .+ randn(10000),
+)
+
+fig = pairplot(Matrix(DataFrame(table1)), Matrix(DataFrame(table2)), Matrix(DataFrame(table3)))
