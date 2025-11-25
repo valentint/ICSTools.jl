@@ -37,7 +37,7 @@ function scree_plot(model::ICSModel; type::String="dots", figsize=(400, 400))
     return current()
 end
 
-function outlier_plot(model::ICSModel; clusters::Vector{String}, legend::Symbol=:botomright, figsize=(400, 400))
+function outlier_plot(model::ICSModel; clusters::Vector{String}, legend::Symbol=:topright, figsize=(400, 400))
 
     if isnothing(model.kurtosis_)
         error("Model is not fitted yet!")
