@@ -18,7 +18,7 @@ import Pkg; Pkg.activate("."); Pkg.test()
 import Pkg; Pkg.test(;coverage=true, julia_args=["--check-bounds=yes", "--compiled-modules=yes", "--depwarn=yes"], force_latest_compatible_version=false, allow_reresolve=true)
 
 ## To build documentation ...
-##  Change to the root directory of the package, activate the package and run 'test'
+##  Change to the root directory of the package, activate the environment 'docs' and include make.jl
 cd("C:/Users/valen/.julia/dev/ICS")
 using Pkg
 Pkg.activate("docs")
