@@ -37,12 +37,14 @@ function scree_plot(model::ICSModel; type::String="dots", figsize=(400, 400))
     return current()
 end
 
-function outlier_plot(model::ICSModel; clusters::Vector{String}, legend::Symbol=:topright, figsize=(400, 400))
+function outlier_plot(model::ICSModel; clusters::Union{Vector{String}, Nothing}=nothing, legend::Symbol=:topright, figsize=(400, 400))
 
     if isnothing(model.kurtosis_)
         error("Model is not fitted yet!")
     end
     n = size(model.scores_,1)
+    clusters = if isnothing(clusters) repeat(["normal"], outer=n) else clusters end
+    ngroup = length(unique(clusters))
 
     ## Create a tidy DataFrame for StatsPlots
     df = DataFrame(
@@ -58,7 +60,7 @@ function outlier_plot(model::ICSModel; clusters::Vector{String}, legend::Symbol=
         markershape=[:circle :utriangle], 
         lab=["normal" "outlier"],
         xlab="Observation number", ylab="ICSQR-ICSD2", legendtitle="Type",
-        legend=legend,
+        legend=if ngroup <= 1 false else legend end,
         legend_column=-1,
         size=figsize
     ) 

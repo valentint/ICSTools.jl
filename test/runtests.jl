@@ -34,11 +34,40 @@ using Random
     @test isapprox(cc.scatter, [2.8170040282000657 0.01100879025915085 0.5147128728712407; 0.01100879025915085 0.8908332251214733 0.43140397241955347; 0.5147128728712407 0.43140397241955347 2.156540524350635])
     
     Random.seed!(1234)
+    cc=mcd_raw(X, nsamp="deterministic");
+    @test isapprox(cc.location, [1.61025641025641, 2.394871794871795, 1.6743589743589742])
+    @test isapprox(cc.scatter, [2.9397144914660727 -0.06904061351203296 1.0144863859568412; -0.06904061351203296 0.9134579667861435 0.19534610988153564; 1.0144863859568412 0.19534610988153564 2.1432468908301505])
+    
+    let err = nothing
+        try
+            cc=mcd_raw(X, nsamp="xxx");
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Invalid 'nsamp': can be either 'deterministic' or a number!"
+    end
+
+    Random.seed!(1234)
     cc=mcd_rwt(X);
     @test isapprox(cc.location, [1.558333333333333, 1.8033333333333335, 1.6599999999999997])
     @test isapprox(cc.scatter, [1.21312099789689 0.02391541790703198 0.1657932538217424; 0.02391541790703198 1.228356794706198 0.19573474773133615; 0.1657932538217424 0.19573474773133615 1.1253468443530048])
+
+    Random.seed!(1234)
+    cc=mcd_rwt(X, nsamp="deterministic");
+    @test isapprox(cc.location, [1.5377049180327866, 1.780327868852459, 1.6868852459016392])
+    @test isapprox(cc.scatter, [1.2208968424415276 0.05473721495128016 0.1265444496168565; 0.05473721495128016 1.242702149861826 0.15178261962426998; 0.1265444496168565 0.15178261962426998 1.1541431351037628])
+    
+    let err = nothing
+        try
+            cc=mcd_rwt(X, nsamp="xxx");
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Invalid 'nsamp': can be either 'deterministic' or a number!"
     end
 
+    end
+    
     @testset "ICSModel" begin
     using Robustbase
     X = hbk[:,1:3]
@@ -49,6 +78,14 @@ using Random
     @test isapprox(ics.kurtosis_, [23.465141777305032, 4.708104428408411, 2.917680272932387])
     @test isapprox(ics.skewness_, [0.01805498369427433, 0.33956728286246396, 0.012932251292713692])
 
+    scree_plot(ics)
+    clusters = Vector{String}(undef, size(scores,1))
+    fill!(clusters, "normal")
+    clusters[1:14] = repeat(["outlier"], outer=14)
+    outlier_plot(ics, clusters=clusters)
+    component_plot2(ics)
+
+
     ics = ICSModel(algorithm="standard");
     scores = fit_predict!(ics, X);
     @test isapprox(ics.kurtosis_, [23.465141777305032, 4.708104428408411, 2.917680272932387])
@@ -58,5 +95,5 @@ using Random
     scores = fit_predict!(ics, X);
     @test isapprox(ics.kurtosis_, [23.465141777305032, 4.708104428408411, 2.917680272932387])
     @test isapprox(ics.skewness_, [0.01805498369427433, 0.33956728286246396, 0.012932251292713692])
-end
+    end
 end

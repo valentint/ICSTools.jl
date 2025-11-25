@@ -256,32 +256,6 @@ function tcov(X::Union{Matrix{Float64}, DataFrame}, beta=2)
 
 end
 
-function tcov_original(X::Union{Matrix{Float64}, DataFrame}, beta=2)
-    if X isa DataFrame
-        X = Matrix(X)
-    end
-
-    n, p = size(X)
-    b = -beta / 2.0
-
-    cov_inv = inv(cov(X, dims=1))
-
-    V = zeros(p, p)
-    denominator = 0.0
-
-    for i in 2:n
-        for j in 1:(i-1)
-            diff = X[i, :] .- X[j, :]
-            r_sq = dot(diff, cov_inv * diff)
-            w = exp(b * r_sq)
-            V .+= w * (diff * diff')
-            denominator += w
-        end
-    end
-
-    return Scatter(nothing, V/denominator, "TCOV")
-end
-
 """
     mcd_raw(X::Union{Matrix{Float64}, DataFrame}; 
         location::Bool=true, alpha=0.5, nsamp::Union{Int, String})

@@ -228,7 +228,24 @@ fill!(clusters, "Group1")
 clusters[1:100] .= "Group2"
 clusters[491:565] .= "Group3"
 
-component_plot2(ics)
+component_plot2(ics, clusters=clusters)
+
+
+## data_philips with center=TRUE
+
+rics=R"ICS($X, S1=ICS_mcd_raw, S2=ICS_cov, S1_args = list(alpha = 0.50, nsamp = 500), 
+    center = TRUE, algorithm = 'standard')";
+ics = ICSModel(S1=mcd_raw, S2=cov2, center=true, algorithm="standard", 
+    S1_args=Dict{Symbol, Any}(:alpha=>0.5, :nsamp=>500));
+scores = fit_predict!(ics, X);
+
+@test(isapprox(ics.kurtosis_, rcopy(rics)[Symbol("gen_kurtosis")]))
+@test(isapprox(ics.skewness_, rcopy(rics)[Symbol("gen_skewness")]))
+@test(isapprox(ics.W_, rcopy(rics)[Symbol("W")]))
+@test(isapprox(scores, rcopy(rics)[Symbol("scores")]))
+
+scree_plot(ics)
+component_plot2(ics, clusters=clusters)
 
 
 
