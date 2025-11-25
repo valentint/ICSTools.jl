@@ -176,20 +176,25 @@ clusters = Vector{String}(undef, size(scores,1))
 fill!(clusters, "normal")
 clusters[32] = "outlier"
 
-ICS.outlier_plot(ics_qr, clusters)
-
-df = DataFrame(ID=1:size(scores, 1), Type=clusters, Z=scores[:,1] .^2)
-
-fig = @df df plot(:ID, :Z, 
-    seriestype=:scatter,
-    groups=:Type,
-    mc=[:lightblue :orange], 
-    markershape=[:circle :utriangle], 
-    lab=["normal" "outlier"],
-    xlab="Observation number", ylab="ICSQR-ICSD2", legendtitle="Type" )
+fig=outlier_plot(ics_qr; clusters=clusters, legend=:topright)
 
 
 savefig(fig, "C:/projects/statproj/julia/HTP3_outlier.png")
+
+ric_qr=R"ICS($X, algorithm = 'QR', fix_signs='W')"
+ics_qr = ICSModel(S2=cov4, algorithm="QR", fix_signs="W");
+scores = fit_predict!(ics_qr, X);
+
+@test(isapprox(ics_qr.kurtosis_, rcopy(ric_qr)[Symbol("gen_kurtosis")]))
+@test(isapprox(ics_qr.skewness_, rcopy(ric_qr)[Symbol("gen_skewness")]))
+@test(isapprox(ics_qr.W_, rcopy(ric_qr)[Symbol("W")]))
+@test(isapprox(scores, rcopy(ric_qr)[Symbol("scores")]))
+
+clusters = Vector{String}(undef, size(scores,1))
+fill!(clusters, "normal")
+clusters[32] = "outlier"
+
+fig=outlier_plot(ics_qr; clusters=clusters, legend=:topright)
 
 ##==================================================================
 ##
@@ -198,6 +203,7 @@ savefig(fig, "C:/projects/statproj/julia/HTP3_outlier.png")
 using DataFrames
 using RCall
 using Test
+using ICS
 
 ## Load R libraries 
 R"library(ICSOutlier)"
@@ -215,14 +221,19 @@ scores = fit_predict!(ics, X);
 @test(isapprox(ics.W_, rcopy(rics)[Symbol("W")]))
 @test(isapprox(scores, rcopy(rics)[Symbol("scores")]))
 
-using CairoMakie
-using PairPlots
+scree_plot(ics)
 
 clusters = Vector{String}(undef, size(scores,1))
 fill!(clusters, "Group1")
 clusters[1:100] .= "Group2"
 clusters[491:565] .= "Group3"
 
+component_plot2(ics)
+
+
+
+using CairoMakie
+using PairPlots
 select = 1:2
 ss = DataFrame(scores, ["IC$i" for i=1:size(scores,2)])
 

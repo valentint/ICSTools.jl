@@ -28,6 +28,7 @@ export Scatter,
        predict,
        fit_predict!,
        scree_plot,
-       outlier_plot
+       outlier_plot,
+       component_plot2
 
 end

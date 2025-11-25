@@ -37,7 +37,7 @@ function scree_plot(model::ICSModel; type::String="dots", figsize=(400, 400))
     return current()
 end
 
-function outlier_plot(model::ICSModel; clusters::Vector{String}, figsize=(400, 400))
+function outlier_plot(model::ICSModel; clusters::Vector{String}, legend::Symbol=:botomright, figsize=(400, 400))
 
     if isnothing(model.kurtosis_)
         error("Model is not fitted yet!")
@@ -58,6 +58,50 @@ function outlier_plot(model::ICSModel; clusters::Vector{String}, figsize=(400, 4
         markershape=[:circle :utriangle], 
         lab=["normal" "outlier"],
         xlab="Observation number", ylab="ICSQR-ICSD2", legendtitle="Type",
+        legend=legend,
+        legend_column=-1,
+        size=figsize
+    ) 
+    return current()
+end
+
+function component_plot2(model::ICSModel; select=[1, 2], clusters::Union{Vector{String}, Nothing}=nothing, legend::Symbol=:topright, figsize=(400, 400))
+
+    if isnothing(model.kurtosis_)
+        error("Model is not fitted yet!")
+    end
+    n = size(model.scores_, 1)
+    p = size(model.scores_, 2)
+    names = ["IC$i" for i=1:p]
+    clusters = if isnothing(clusters) repeat([1], outer=n) else clusters end
+    ngroup = length(unique(clusters))
+
+    if(length(select) != 2 || select[1] < 1 || select[1] > p || select[2] < 1 || select[2] > p)
+        error("Invalid columns selected: both should be greater than 1 and less than ", p)
+    end
+    if(select[1] == select[2])
+        error("Identical columns selected!")
+    end
+
+    ## Create a tidy DataFrame for StatsPlots
+    df = DataFrame(
+        X1 = model.scores_[:, select[1]],
+        X2 = model.scores_[:, select[2]],
+        index    = 1:n,
+        clusters = clusters
+    )
+
+    xlab = names[select[1]]
+    ylab = names[select[2]]
+
+    @df df plot(:X1, :X2, 
+        seriestype=:scatter,
+        groups=:clusters,
+#        mc=[:lightblue :orange], 
+#        markershape=[:circle :utriangle], 
+        xlab=xlab, ylab=ylab,
+        legend=if ngroup > 1 legend else false end,
+        legend_column=-1,
         size=figsize
     ) 
     return current()
