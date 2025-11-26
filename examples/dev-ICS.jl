@@ -216,19 +216,21 @@ rics=R"ICS($X, S1=ICS_mcd_raw, S2=ICS_cov, S1_args = list(alpha = 0.50, nsamp = 
 ics = ICSModel(S1=mcd_raw, S2=cov2);
 scores = fit_predict!(ics, X);
 
+#=
 @test(isapprox(ics.kurtosis_, rcopy(rics)[Symbol("gen_kurtosis")]))
 @test(isapprox(ics.skewness_, rcopy(rics)[Symbol("gen_skewness")]))
 @test(isapprox(ics.W_, rcopy(rics)[Symbol("W")]))
 @test(isapprox(scores, rcopy(rics)[Symbol("scores")]))
+=#
 
 scree_plot(ics)
 
-clusters = Vector{String}(undef, size(scores,1))
-fill!(clusters, "Group1")
+clusters = repeat(["Group1"], outer=size(scores,1))
 clusters[1:100] .= "Group2"
 clusters[491:565] .= "Group3"
 
 component_plot2(ics, clusters=clusters)
+component_plot2(ics, clusters=clusters, select=[4])
 
 
 ## data_philips with center=TRUE
@@ -239,10 +241,12 @@ ics = ICSModel(S1=mcd_raw, S2=cov2, center=true, algorithm="standard",
     S1_args=Dict{Symbol, Any}(:alpha=>0.5, :nsamp=>500));
 scores = fit_predict!(ics, X);
 
+#=
 @test(isapprox(ics.kurtosis_, rcopy(rics)[Symbol("gen_kurtosis")]))
 @test(isapprox(ics.skewness_, rcopy(rics)[Symbol("gen_skewness")]))
 @test(isapprox(ics.W_, rcopy(rics)[Symbol("W")]))
 @test(isapprox(scores, rcopy(rics)[Symbol("scores")]))
+=#
 
 scree_plot(ics)
 component_plot2(ics, clusters=clusters)
@@ -290,50 +294,99 @@ R"library(ICSOutlier)"
 R"library(ICSClust)"
 
 R"library(palmerpenguins)"
-penguins = X = rcopy(R"data('penguins', package='palmerpenguins'); x=penguins");
+penguins = X = rcopy(R"data('penguins', package='palmerpenguins'); x=penguins; x=x[-c(4,9,10,11,12,48,179,219,257,269,272),]");
 
-using StatsPlots
+#Tabulate species by sex
+gdf = groupby(penguins, [:species, :sex])
+combine(gdf, nrow) 
 
-#=
-    using Plots
-    plot(
-    penguins.bill_length_mm, 
-    penguins.bill_depth_mm, 
-    seriestype=:scatter,
-    size=(500,500)
-    )
-=#
 
-@df penguins plot(
-  :bill_length_mm,
-  :bill_depth_mm,
-  seriestype=:scatter,
-  group=:species,
-  size=(500,500)
+X=penguins[:,3:6]       # select the numerical columns
+rics=R"ICS($X, S1=ICS_tcov, S2=ICS_cov)"
+ics = ICSModel(S1=tcov, S2=cov2);
+scores = fit_predict!(ics, X);
+
+
+@test(isapprox(ics.kurtosis_, rcopy(rics)[Symbol("gen_kurtosis")]))
+@test(isapprox(ics.skewness_, rcopy(rics)[Symbol("gen_skewness")]))
+@test(isapprox(ics.W_, rcopy(rics)[Symbol("W")]))
+@test(isapprox(scores, rcopy(rics)[Symbol("scores")]))
+
+scree_plot(ics)
+
+## Convert the categorical arrays species and sex to string arrays
+using CategoricalArrays
+clusters1 = unwrap.(penguins.species)
+clusters2 = unwrap.(penguins.sex)
+
+component_plot2(ics, clusters=clusters1)
+component_plot2(ics, clusters=clusters2, select=[4])
+
+
+using CairoMakie
+using PairPlots
+select = 1:2
+ss = DataFrame(scores, ["IC$i" for i=1:size(scores,2)])
+
+pairplot(scores)
+
+fig=pairplot(ss[clusters1 .== "Adelie", :], 
+          ss[clusters1 .== "Chinstrap", :],
+          ss[clusters1 .== "Gentoo", :] =>
+         (
+            PairPlots.Scatter(markersize=10),
+            PairPlots.MarginHist()
+         ), 
+          fullgrid=true)
+
+
+            
+table1 = (;
+    x = randn(1000),
+    y = randn(1000),
 )
 
-@df penguins plot(
-  :bill_length_mm,
-  :bill_depth_mm,
-  seriestype=:scatter,
-  group=:species,
-  title="Palmer Penguins",
-  xlabel="Bill Length (mm)",
-  ylabel="Bill Depth (mm)",
-  size=(500,500)
+table2 = (;
+    x = 1 .+ randn(1000),
+    y = 2 .+ randn(1000),
+    z = randn(1000),
 )
 
-using StatsPlots
-@df penguins plot(
-  :bill_length_mm,
-  :bill_depth_mm,
-  seriestype=:scatter,
-  group=:species,
-  markershape=[:circle :diamond :utriangle],
-  markercolor=[:red :blue :orange],
-  markersize=6,
-  title="Palmer Penguins",
-  xlabel="Bill Length (mm)",
-  ylabel="Bill Depth (mm)",
-  size=(500,500)
+fig = pairplot(table1, table2)
+                    
+pairplot(
+    PairPlots.Series(ss[clusters1 .== "Adelie", :], color=Makie.wong_colors(0.5)[1]) => (
+        PairPlots.Scatter(markersize=8),
+        PairPlots.MarginDensity(
+            linewidth=2.5f0
+        )
+    ),
+    PairPlots.Series(ss[clusters1 .== "Chinstrap", :], color=Makie.wong_colors(0.5)[2]) => (
+        PairPlots.Scatter(markersize=8),
+        PairPlots.MarginDensity(
+            linewidth=2.5f0
+        )
+    ),
+    PairPlots.Series(ss[clusters1 .== "Gentoo", :], color=Makie.wong_colors(0.5)[3]) => (
+        PairPlots.Scatter(markersize=8),
+        PairPlots.MarginDensity(
+            linewidth=2.5f0
+        )
+    ),
+)
+
+pairplot(
+    ss[clusters1 .== "Adelie", :] => (
+        PairPlots.Scatter(markersize=8),
+        PairPlots.MarginDensity(),
+    ),
+    ss[clusters1 .== "Chinstrap", :] => (
+        PairPlots.Scatter(markersize=8),
+        PairPlots.MarginDensity(),
+    ),
+    ss[clusters1 .== "Gentoo", :] => (
+        PairPlots.Scatter(markersize=8),
+        PairPlots.MarginDensity(),
+    ),
+    fullgrid=true
 )

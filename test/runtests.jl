@@ -72,19 +72,87 @@ using Random
     using Robustbase
     X = hbk[:,1:3]
 
-    ics = ICSModel();
+    ics = ICSModel();               # by default algorithm="whiten"
+    display(ics);                   # model is not fitted yet
+    let err = nothing               # model is not fitted yet
+        try
+            scree_plot(ics);
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Model is not fitted yet!"
+    end
+    let err = nothing               # model is not fitted yet
+        try
+            outlier_plot(ics);
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Model is not fitted yet!"
+    end
+    let err = nothing               # model is not fitted yet
+        try
+            component_plot2(ics);
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Model is not fitted yet!"
+    end
+
     scores = fit_predict!(ics, X);
     display(ics)
     @test isapprox(ics.kurtosis_, [23.465141777305032, 4.708104428408411, 2.917680272932387])
     @test isapprox(ics.skewness_, [0.01805498369427433, 0.33956728286246396, 0.012932251292713692])
 
-    scree_plot(ics)
-    clusters = Vector{String}(undef, size(scores,1))
-    fill!(clusters, "normal")
+    # all plots
+    clusters = repeat(["normal"], outer=size(scores,1))
     clusters[1:14] = repeat(["outlier"], outer=14)
+    scree_plot(ics)
+    scree_plot(ics, type="bars")
+    scree_plot(ics, type="line")
+    let err = nothing               # model is not fitted yet
+        try
+            scree_plot(ics, type="abcd")
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Undefined type of plot: abcd!"
+    end
     outlier_plot(ics, clusters=clusters)
     component_plot2(ics)
+    let err = nothing               # wrong components selected
+        try
+            component_plot2(ics, select=[1, 2, 3])
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Invalid columns selected: should be one or two!"
+    end
+    let err = nothing               # wrong components selected
+        try
+            component_plot2(ics, select=[1, 5])
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Invalid columns selected: both should be greater than 1 and less than 3"
+    end
+    let err = nothing               # identical components selected
+        try
+            component_plot2(ics, select=[2, 2])
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Identical columns selected!"
+    end
 
+    let err = nothing               # identical components selected
+        try
+            component_plot2(ics, select=[5])
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Invalid column selected: should be greater than 1 and less than 3"
+    end
 
     ics = ICSModel(algorithm="standard");
     scores = fit_predict!(ics, X);
@@ -95,5 +163,18 @@ using Random
     scores = fit_predict!(ics, X);
     @test isapprox(ics.kurtosis_, [23.465141777305032, 4.708104428408411, 2.917680272932387])
     @test isapprox(ics.skewness_, [0.01805498369427433, 0.33956728286246396, 0.012932251292713692])
-    end
+
+    ics = ICSModel(algorithm="QR", fix_signs="W");
+    scores = fit_predict!(ics, X);
+    @test isapprox(ics.kurtosis_, [23.465141777305032, 4.708104428408411, 2.917680272932387])
+    ## there is no skewness, if fix_signs=="W"
+    ##  @test isapprox(ics.skewness_, [0.01805498369427433, 0.33956728286246396, 0.012932251292713692])
+
+    Random.seed!(1234)
+    X = randn(300, 9)
+    ics = ICSModel()
+    fit_predict!(ics, X)
+    display(ics)
+
+end
 end

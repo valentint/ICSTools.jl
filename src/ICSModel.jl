@@ -149,7 +149,7 @@ function Base.show(io::IO, model::ICSModel)
             feature_names = isnothing(model.feature_names_in_) ?
                             ["Feature_$i" for i in 1:p] :
                             model.feature_names_in_
-            if p <- 6
+            if p <= 6
                 # header row
                 header = "     " * join([@sprintf("%12s", name) for name in feature_names], " ")
                 println(io, header)
