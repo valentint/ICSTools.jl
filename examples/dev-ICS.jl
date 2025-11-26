@@ -298,8 +298,8 @@ penguins = X = rcopy(R"data('penguins', package='palmerpenguins'); x=penguins; x
 
 #Tabulate species by sex
 gdf = groupby(penguins, [:species, :sex])
-combine(gdf, nrow) 
-
+tt = combine(gdf, nrow);
+show(IOContext(stdout, :limit=>false), MIME"text/plain"(), tt)
 
 X=penguins[:,3:6]       # select the numerical columns
 rics=R"ICS($X, S1=ICS_tcov, S2=ICS_cov)"
