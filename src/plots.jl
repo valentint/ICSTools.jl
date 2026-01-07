@@ -42,7 +42,7 @@ function outlier_plot(model::ICSModel; clusters::Union{Vector{String}, Nothing}=
     if isnothing(model.kurtosis_)
         error("Model is not fitted yet!")
     end
-    n = size(model.scores_,1)
+    n = size(model.scores_, 1)
     clusters = if isnothing(clusters) repeat(["normal"], outer=n) else clusters end
     ngroup = length(unique(clusters))
 
@@ -50,7 +50,7 @@ function outlier_plot(model::ICSModel; clusters::Union{Vector{String}, Nothing}=
     df = DataFrame(
         ID=1:size(model.scores_, 1), 
         Type=clusters, 
-        Z=model.scores_[:,1] .^2
+        Z=model.scores_[:,1]
     )
 
     @df df plot(:ID, :Z, 

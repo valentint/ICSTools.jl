@@ -381,6 +381,11 @@ function _fix_component_signs(model::ICSModel, X, W)
     else
         row_signs = [sign_max(W[i,:]) for i in 1:size(W,1)]
         row_norms = sqrt.(sum(W.^2, dims=2))
+
+        ## This is wrong (resulting in differences to R), 
+        ##  remove the transpose 
+        ##  W_final = (W' ./ (row_signs .* row_norms))'
+        
         W_final = (W ./ (row_signs .* row_norms))
         return W_final, nothing
     end
