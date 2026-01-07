@@ -186,9 +186,28 @@ ics_qr = ICSModel(S2=cov4, algorithm="QR", fix_signs="W");
 scores = fit_predict!(ics_qr, X);
 
 @test(isapprox(ics_qr.kurtosis_, rcopy(ric_qr)[Symbol("gen_kurtosis")]))
-@test(isapprox(ics_qr.skewness_, rcopy(ric_qr)[Symbol("gen_skewness")]))
+## both are Nothing
+@test(ics_qr.skewness_ == rcopy(ric_qr)[Symbol("gen_skewness")])
 @test(isapprox(ics_qr.W_, rcopy(ric_qr)[Symbol("W")]))
 @test(isapprox(scores, rcopy(ric_qr)[Symbol("scores")]))
+
+
+
+rii=R"rx=ICS($X, algorithm = 'QR')"
+row_signs=R"rx=ICS($X, algorithm = 'QR'); apply(rx$W, 1L, ICS:::.sign.max)"
+row_norms=R"rx=ICS($X, algorithm = 'QR'); apply(rx$W, 1L, ICS:::.sign.max); sqrt(rowSums(rx$W^2))"
+W_final=R"rx=ICS($X, algorithm = 'QR'); row_signs=apply(rx$W, 1L, ICS:::.sign.max); row_norms=sqrt(rowSums(rx$W^2)); W_final=sweep(rx$W, 1L, row_norms * row_signs, '/')"
+
+ii = ICSModel(S2=cov4, algorithm="QR");
+scores = fit_predict!(ii, X);
+ii_row_signs=[ICS.sign_max(ii.W_[i,:]) for i in 1:size(ii.W_,1)]
+ii_row_norms=sqrt.(sum(ii.W_.^2, dims=2))
+ii_W_final = (ii.W_ ./ (ii_row_signs .* ii_row_norms))
+
+@test(isapprox(ii.W_, rcopy(rii)[Symbol("W")]))
+@test(isapprox(rcopy(row_signs), ii_row_signs))
+@test(isapprox(rcopy(row_norms), ii_row_norms))
+@test(isapprox(rcopy(W_final), ii_W_final))
 
 clusters = Vector{String}(undef, size(scores,1))
 fill!(clusters, "normal")
@@ -354,7 +373,7 @@ table2 = (;
 
 fig = pairplot(table1, table2)
                     
-pairplot(
+fig =pairplot(
     PairPlots.Series(ss[clusters1 .== "Adelie", :], color=Makie.wong_colors(0.5)[1]) => (
         PairPlots.Scatter(markersize=8),
         PairPlots.MarginDensity(
@@ -375,7 +394,7 @@ pairplot(
     ),
 )
 
-pairplot(
+fig=pairplot(
     ss[clusters1 .== "Adelie", :] => (
         PairPlots.Scatter(markersize=8),
         PairPlots.MarginDensity(),
@@ -390,3 +409,6 @@ pairplot(
     ),
     fullgrid=true
 )
+Label(fig[0,:], "Component plot of Pengin data set: tcov-COV", fontsize=18)
+fig
+save("Penguins_plot3c-julia.png", fig)
