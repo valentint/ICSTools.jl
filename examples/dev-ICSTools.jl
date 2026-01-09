@@ -5,12 +5,12 @@ using ICSTools
 ## Workflow for parallel development with Robustbase
 using Revise, Pkg
 Pkg.develop(path=".julia/dev/Robustbase")        # added Robustbase to the development
-Pkg.activate(".julia/dev/ICSTOOLS")                   # added ICSTOOLS 
-using ICSTOOLS
+Pkg.activate(".julia/dev/ICSTools")                   # added ICSTools
+using ICSTools
 
 ## To run the tests:
 ##  Change to the root directory of the package, activate the package and run 'test'
-cd("C:/Users/valen/.julia/dev/ICSTOOLS")
+cd("C:/Users/valen/.julia/dev/ICSTools")
 
 import Pkg; Pkg.activate("."); Pkg.test()
 
@@ -19,10 +19,10 @@ import Pkg; Pkg.test(;coverage=true, julia_args=["--check-bounds=yes", "--compil
 
 ## To build documentation ...
 ##  Change to the root directory of the package, activate the environment 'docs' and include make.jl
-cd("C:/Users/valen/.julia/dev/ICSTOOLS")
+cd("C:/Users/valen/.julia/dev/ICSTools")
 using Pkg
 Pkg.activate("docs")
-include("C:/Users/valen/.julia/dev/ICSTOOLS/docs/make.jl")
+include("C:/Users/valen/.julia/dev/ICSTools/docs/make.jl")
 
 
 ## To view the built static documentation:
@@ -38,7 +38,7 @@ X = Matrix(iris[:,1:4])
 ## Scatter
 X = Robustbase.hbk[:,1:3]
 
-using ICSTOOLS
+using ICSTools
 cov2(X)
 covW(X)
 covAxis(X)
@@ -148,7 +148,7 @@ scores = fit_predict!(ics, X);
 using DataFrames
 using RCall
 using Test
-using ICSTOOLS
+using ICSTools
 
 ## Load R libraries 
 R"library(ICSOutlier)"

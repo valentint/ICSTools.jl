@@ -1,8 +1,8 @@
-using ICSTOOL
+using ICSTools
 using Test
 using Random
 
-@testset "ICSTOOL.jl" begin
+@testset "ICSTools.jl" begin
     @testset "Scatters" begin
     using Robustbase
     X = hbk[:,1:3]

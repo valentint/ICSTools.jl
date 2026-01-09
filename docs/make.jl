@@ -1,5 +1,5 @@
 using Documenter
-using ICSTools
+using .ICSTools
 
 makedocs(sitename = "ICSTools",
     format = Documenter.HTML(),
