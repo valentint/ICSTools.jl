@@ -48,6 +48,8 @@ tcov(X)
 mcd_raw(X)
 mcd_rwt(X)
 
+mlc(X, alg=:alg3)
+
 ##  ICSModel
 ics = ICSModel(S2=covW)
 fit!(ics, x)
@@ -84,6 +86,15 @@ function doTestScatter(X::Union{Matrix{Float64}, DataFrame}; which::String="cov2
     elseif which == "mcd_raw"
         cc=R"ICS_mcd_raw($X, location=TRUE, nsamp=500, alpha=0.5)"
         ss=mcd_raw(X, nsamp=500, alpha=0.5)
+    elseif which == "mlc-1"
+        cc=R"ICS_mlc($X, location=TRUE, alg='alg1')"
+        ss=mlc(X, alg=:alg1)
+    elseif which == "mlc-2"
+        cc=R"ICS_mlc($X, location=TRUE, alg='alg2')"
+        ss=mlc(X, alg=:alg2)
+    elseif which == "mlc-3"
+        cc=R"ICS_mlc($X, location=TRUE, alg='alg3')"
+        ss=mlc(X, alg=:alg3)
     else
         error("Undefined scatter:", which)       
     end
@@ -102,6 +113,9 @@ doTestScatter(X, which="covW")
 doTestScatter(X, which="covAxis")
 doTestScatter(X, which="tcov")
 ##  doTestScatter(X, which="mcd_raw")
+doTestScatter(X, which="mlc-1")
+doTestScatter(X, which="mlc-2")
+doTestScatter(X, which="mlc-3")
 
 using StatsPlots
 X = rcopy(R"data('hbk', package='robustbase'); x=hbk[,1:3]");
@@ -184,6 +198,8 @@ savefig(fig, "C:/projects/statproj/julia/HTP3_outlier.png")
 ric_qr=R"ICS($X, algorithm = 'QR', fix_signs='W')"
 ics_qr = ICSModel(S2=cov4, algorithm="QR", fix_signs="W");
 scores = fit_predict!(ics_qr, X);
+
+fig=outlier_plot(ics_qr; clusters=clusters, legend=:topright)
 
 @test(isapprox(ics_qr.kurtosis_, rcopy(ric_qr)[Symbol("gen_kurtosis")]))
 ## both are Nothing

@@ -329,3 +329,247 @@ function mcd_rwt(X::Union{Matrix{Float64}, DataFrame};
     
     return Scatter(location, Robustbase.covariance(mcd), "RMCD")
 end
+
+"""
+    mlc(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, 
+        alg::Symbol=:alg3, mu_init=nothing, V_init=nothing, gamma_init=nothing, 
+        eps=1e-6, maxiter=100)
+
+
+    Compute Cauchy location and scatter estimates
+    It is a wrapper for the Cauchy estimator of location and scatter for a 
+        multivariate t-distribution, as computed by tM().
+
+# Arguments:
+    X::Union{Matrix{Float64}, DataFrame}: The data matrix.
+    location::Bool (default=true): Whether to include the mean location.
+    alg::Symbol (default=:alg3): specifies which algorithm to use. Options are :alg1, :alg2 or :alg3. 
+    mu_init: initial value for the location vector if available.
+    V_init: initial value for the scatter matrix if available.
+    gamma_init: initial value for gamma if available. Only needed for alg2.
+    eps: convergence tollerance.
+    maxiter: maximum number of iterations.
+
+# Returns:
+    Scatter: An object containing the location (if reqested) and a numeric 
+        matrix giving the estimate of the scatter matrix.
+
+# Details:
+This function implements the EM algorithms described in Kent et al. (1994). 
+    The norm used to define convergence is as in Arslan et al. (1995).
+
+Algorithm 1 is valid for all degrees of freedom df > 0. 
+Algorithm 2 is well defined only for degrees of freedom df > 1. 
+Algorithm 3 is the limiting case of Algorithm 2 with degrees of freedom df = 1.
+
+The performance of the algorithms are compared in Arslan et al. (1995).
+
+# References:
+Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate t-distribution, Communications in Statistics, Simulation and Computation, 23, 441–453. <doi:10.1080/03610919408813180>.
+
+Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000. <doi:10.1080/03610929508831664>.
+
+"""
+function mlc(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, 
+    alg::Symbol=:alg3, mu_init=nothing, V_init=nothing, gamma_init=nothing, eps=1e-6, maxiter=100)
+
+    if X isa DataFrame
+        X = Matrix(X)
+    end
+
+    n, p = size(X)
+
+    mu_init === nothing && (mu_init = vec(mean(X, dims=1)))
+    V_init === nothing && (V_init = cov(X))
+
+    ## we fix the df to have only cauchy estimate
+    mu, V = tM(X; df=1, alg=alg, mu_init=mu_init, V_init=V_init, 
+        gamma_init=gamma_init, eps=eps, maxiter=maxiter)
+
+    location_ = location ? mu : nothing
+    return Scatter(location_, V, "MLC")
+
+end
+
+"""
+    tM(X; df::Real=1, alg::Symbol=:alg3, mu_init=nothing, V_init=nothing, 
+        gamma_init=nothing, eps=1e-6, maxiter=100)
+
+
+Compute joint M-estimation of Location and Scatter for a Multivariate t-distribution.
+    Implements three EM algorithms to M-estimate the location vector and scatter matrix 
+    of a multivariate t-distribution.
+
+# Arguments:
+    X::Union{Matrix{Float64}, DataFrame}: The data matrix.
+    df::Real (default=1): assumed degrees of freedom of the t-distribution. 
+        Default is 1 which corresponds to the Cauchy distribution.
+    alg::Symbol (default=:alg3): specifies which algorithm to use. Options are :alg1, :alg2 or :alg3. 
+    mu_init: initial value for the location vector if available.
+    V_init: initial value for the scatter matrix if available.
+    gamma_init: initial value for gamma if available. Only needed for alg2.
+    eps: convergence tollerance.
+    maxiter: maximum number of iterations.
+
+# Returns:
+    mu: vector with the estimated loaction.
+    V:  matrix of the estimated scatter.
+    gam: estimated value of gamma. Only present when alg2 is used.
+    iter: number of iterations.
+
+# Details:
+This function implements the EM algorithms described in Kent et al. (1994). 
+    The norm used to define convergence is as in Arslan et al. (1995).
+
+Algorithm 1 is valid for all degrees of freedom df > 0. 
+Algorithm 2 is well defined only for degrees of freedom df > 1. 
+Algorithm 3 is the limiting case of Algorithm 2 with degrees of freedom df = 1.
+
+The performance of the algorithms are compared in Arslan et al. (1995).
+
+# References:
+Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate t-distribution, Communications in Statistics, Simulation and Computation, 23, 441–453. <doi:10.1080/03610919408813180>.
+
+Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000. <doi:10.1080/03610929508831664>.
+
+"""
+function tM(X; df::Real=1, alg::Symbol=:alg3, 
+    mu_init=nothing, V_init=nothing, gamma_init=nothing, eps=1e-6, maxiter=100)
+
+    n, p = size(X)
+
+    mu_init === nothing && (mu_init = vec(mean(X, dims=1)))
+    V_init === nothing && (V_init = cov(X))
+
+    if alg != :alg2 && gamma_init !== nothing
+        @warn "Initial gamma is only used in alg2"
+    end
+
+    gamma_init === nothing && (gamma_init = 1.0)
+
+    if alg == :alg1
+        return alg1(X, mu_init, V_init, df, eps, maxiter)
+    elseif alg == :alg2
+        return alg2(X, mu_init, V_init, gamma_init, df, eps, maxiter)
+    elseif alg == :alg3
+        return alg3(X, mu_init, V_init, df, eps, maxiter)
+    else
+        error("Unknown algorithm: $alg")
+    end
+end
+
+
+function norm_mu_V(a::AbstractVector, B::AbstractMatrix, A::AbstractMatrix)
+    Ainv = inv(A)
+    BAinv = B * Ainv
+    square =
+        dot(a, Ainv * a) +
+        sum(diag(BAinv * BAinv))
+    return sqrt(square)
+end
+
+function alg1(X, mu_init, V_init, nu, eps, maxiter)
+    n, p = size(X)
+
+    V = copy(V_init)
+    mu = copy(mu_init)
+
+    iter = 0
+    differ = Inf
+
+    while differ > eps
+        iter += 1
+
+        d2 = Robustbase.mahalanobis_distance(X, mu, V) .^ 2
+        u = (nu + p) ./ (nu .+ d2)
+
+        mu_new = vec(mean(X .* u, dims=1)) / mean(u)
+
+        Xc = X .- mu_new'
+        V_new = (Xc' * (Xc .* u)) / n
+
+        differ = norm_mu_V(mu_new - mu, V_new - V, V_new)
+
+        mu = mu_new
+        V = V_new
+
+        if iter ≥ maxiter
+            error("maxiter reached without convergence")
+        end
+    end
+
+    return (mu=mu, V=V, iter=iter)
+end
+
+function alg2(X, mu_init, V_init, gamma_init, nu, eps, maxiter)
+    n, p = size(X)
+
+    V = copy(V_init)
+    mu = copy(mu_init)
+    gamma = gamma_init
+
+    iter = 0
+    differ = Inf
+
+    while differ > eps
+        iter += 1
+
+        d2 = Robustbase.mahalanobis_distance(X, mu, V) .^ 2
+        w = (nu + p) ./ (nu - 1 + 1/gamma .+ d2 ./ gamma)
+
+        gamma_new = mean(w)
+        mu_new = vec(mean(X .* w, dims=1)) / gamma_new
+
+        Xc = X .- mu_new'
+        V_new = (Xc' * (Xc .* w)) / n / gamma_new
+
+        differ = norm_mu_V(mu_new - mu, V_new - V, V_new)
+
+        gamma = gamma_new
+        mu = mu_new
+        V = V_new
+
+        if iter ≥ maxiter
+            error("maxiter reached without convergence")
+        end
+    end
+
+    return (mu=mu, V=V, gam=gamma, iter=iter)
+end
+
+function alg3(X, mu_init, V_init, nu, eps, maxiter)
+    n, p = size(X)
+
+    V = copy(V_init)
+    mu = copy(mu_init)
+    gamma = 1.0
+
+    iter = 0
+    differ = Inf
+
+    while differ > eps
+        iter += 1
+
+        d2 = Robustbase.mahalanobis_distance(X, mu, V) .^ 2
+        w = (nu + p) ./ (nu - 1 + 1/gamma .+ d2 ./ gamma)
+
+        gamma_new = mean(w)
+        mu_new = vec(mean(X .* w, dims=1)) / gamma_new
+
+        Xc = X .- mu_new'
+        V_new = (Xc' * (Xc .* w)) / n / gamma_new
+
+        differ = norm_mu_V(mu_new - mu, V_new - V, V_new)
+
+        mu = mu_new
+        V = V_new
+        gamma = gamma_new
+
+        if iter ≥ maxiter
+            error("maxiter reached without convergence")
+        end
+    end
+
+    return (mu=mu, V=V, iter=iter)
+end
+

@@ -42,6 +42,16 @@ ICS.mcd_raw
 ICS.mcd_rwt
 ```
 
+## Cauchy location and scatter estimates: mlc
+```@docs
+ICS.mlc
+```
+
+## Joint M-estimation of Location and Scatter for a Multivariate t-distribution: tM
+
+```@docs
+ICS.tM
+```
 # ICS Model
 
 ## Constructor for an ICS model

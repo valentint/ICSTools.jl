@@ -66,6 +66,27 @@ using Random
         @test sprint(showerror, err) == "Invalid 'nsamp': can be either 'deterministic' or a number!"
     end
 
+    cc=mlc(X, alg=:alg1);
+    @test isapprox(cc.location, [1.6089942229177603, 1.8875566256231056, 1.697445667934874])
+    @test isapprox(cc.scatter, [1.0790561468851574 0.525861733182914 0.8861365315136714; 0.525861733182914 1.9860137071985495 1.8536943735943225; 0.8861365315136714 1.8536943735943225 3.2277904870231016])
+
+    cc=mlc(X, alg=:alg2);
+    @test isapprox(cc.location, [1.6089944684180306, 1.8875565779548642, 1.6974456466045007])
+    @test isapprox(cc.scatter, [1.0790542144871826 0.5258609121407963 0.8861350894035047; 0.5258609121407963 1.986010286964204 1.8536914124840267; 0.8861350894035047 1.8536914124840267 3.227785018207513])
+
+    cc=mlc(X);  # alg=:alg3
+    @test isapprox(cc.location, [1.6089944684180306, 1.8875565779548642, 1.6974456466045007])
+    @test isapprox(cc.scatter, [1.0790542144871826 0.5258609121407963 0.8861350894035047; 0.5258609121407963 1.986010286964204 1.8536914124840267; 0.8861350894035047 1.8536914124840267 3.227785018207513])
+
+    let err = nothing
+        try
+            cc=mlc(X, alg=:ALG4);
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Unknown algorithm: ALG4"
+    end
+
     end
     
     @testset "ICSModel" begin

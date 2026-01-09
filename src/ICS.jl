@@ -22,6 +22,7 @@ export Scatter,
        tcov,
        mcd_raw,
        mcd_rwt,
+       mlc, tM,
        
        ICSModel,
        fit!,
