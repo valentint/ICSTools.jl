@@ -1,76 +1,76 @@
-# ICS.jl
+# ICSTools.jl
 
-Documentation for ICS.jl
+Documentation for ICSTools.jl
 
-Tools for Exploring Multivariate Data: The InvariantCoordinate Selection (ICS) Method.
+Tools for Exploring Multivariate Data: The Invariant Coordinate Selection (ICS) Method.
 
 # Scatters
 ```@docs
-ICS.Scatter
+ICSTools.Scatter
 ```
 
 ## Covariance matrix: cov2
 ```@docs
-ICS.cov2
+ICSTools.cov2
 ```
 ## One-step M-estimator: covW
 ```@docs
-ICS.covW
+ICSTools.covW
 ```
 ## One-step Tyler shape matrix: CovAxis
 ```@docs
-ICS.covAxis
+ICSTools.covAxis
 ```
 
 ## Custom weighted covariance matrix: cov4
 ```@docs
-ICS.cov4
+ICSTools.cov4
 ```
 
 ## Pairwise one-step M-estimate of scatter: tcov
 ```@docs
-ICS.tcov
+ICSTools.tcov
 ```
 
 ## Raw MCD estimate: mcd_raw
 ```@docs
-ICS.mcd_raw
+ICSTools.mcd_raw
 ```
 
 ## Reweighted MCD estimate: mcd_rwt
 ```@docs
-ICS.mcd_rwt
+ICSTools.mcd_rwt
 ```
 
 ## Cauchy location and scatter estimates: mlc
 ```@docs
-ICS.mlc
+ICSTools.mlc
 ```
 
 ## Joint M-estimation of Location and Scatter for a Multivariate t-distribution: tM
 
 ```@docs
-ICS.tM
+ICSTools.tM
 ```
 # ICS Model
 
 ## Constructor for an ICS model
 ```@docs
-ICS.ICSModel
+ICSTools.ICSModel
 ```
 
 ## Fit the ICS model to data
 ```@docs
-ICS.fit!
+ICSTools.fit!
 ```
 
 ## Transform the data using the fitted ICS model
 ```@docs
-ICS.predict
+ICSTools.predict
 ```
 
 ## Fit the ICS model and transform the data using the fitted ICS model
 ```@docs
-ICS.fit_predict!
+ICSTools.fit_predict!
 ```
 

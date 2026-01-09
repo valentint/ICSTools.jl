@@ -1,4 +1,4 @@
-module ICS
+module ICSTOOL
 
 using DataFrames: DataFrame
 using Statistics

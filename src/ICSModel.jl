@@ -78,7 +78,7 @@ See also [`cov2`](@ref), [`cov4`](@ref), [`covW`](@ref), [`covAxis`](@ref), [`tc
 Examples:
     
 ```julia
-using ICS, RDatasets
+using ICSTools, RDatasets
 
 iris = dataset("datasets", "iris")
 

@@ -1,15 +1,15 @@
 using Documenter
-using ICS
+using ICSTools
 
-makedocs(sitename = "ICS",
+makedocs(sitename = "ICSTools",
     format = Documenter.HTML(),
-    modules = [ICS],
+    modules = [ICSTools],
     ## warnonly = :missing_docs
     warnonly = [:missing_docs, :docs_block]
 )
 
 deploydocs(
-    repo = "github.com/valentint/ICS.jl.git",
+    repo = "github.com/valentint/ICSTools.jl.git",
     target = "build",
     deps   = nothing,
     make   = nothing,

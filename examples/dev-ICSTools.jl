@@ -1,16 +1,16 @@
 using Revise, Pkg
-Pkg.activate(".julia/dev/ICS")
-using ICS
+Pkg.activate(".julia/dev/ICSTools")
+using ICSTools
 
 ## Workflow for parallel development with Robustbase
 using Revise, Pkg
 Pkg.develop(path=".julia/dev/Robustbase")        # added Robustbase to the development
-Pkg.activate(".julia/dev/ICS")                   # added ICS 
-using ICS
+Pkg.activate(".julia/dev/ICSTOOLS")                   # added ICSTOOLS 
+using ICSTOOLS
 
 ## To run the tests:
 ##  Change to the root directory of the package, activate the package and run 'test'
-cd("C:/Users/valen/.julia/dev/ICS")
+cd("C:/Users/valen/.julia/dev/ICSTOOLS")
 
 import Pkg; Pkg.activate("."); Pkg.test()
 
@@ -19,10 +19,10 @@ import Pkg; Pkg.test(;coverage=true, julia_args=["--check-bounds=yes", "--compil
 
 ## To build documentation ...
 ##  Change to the root directory of the package, activate the environment 'docs' and include make.jl
-cd("C:/Users/valen/.julia/dev/ICS")
+cd("C:/Users/valen/.julia/dev/ICSTOOLS")
 using Pkg
 Pkg.activate("docs")
-include("C:/Users/valen/.julia/dev/ICS/docs/make.jl")
+include("C:/Users/valen/.julia/dev/ICSTOOLS/docs/make.jl")
 
 
 ## To view the built static documentation:
@@ -38,7 +38,7 @@ X = Matrix(iris[:,1:4])
 ## Scatter
 X = Robustbase.hbk[:,1:3]
 
-using ICS
+using ICSTOOLS
 cov2(X)
 covW(X)
 covAxis(X)
@@ -148,7 +148,7 @@ scores = fit_predict!(ics, X);
 using DataFrames
 using RCall
 using Test
-using ICS
+using ICSTOOLS
 
 ## Load R libraries 
 R"library(ICSOutlier)"
@@ -216,7 +216,7 @@ W_final=R"rx=ICS($X, algorithm = 'QR'); row_signs=apply(rx$W, 1L, ICS:::.sign.ma
 
 ii = ICSModel(S2=cov4, algorithm="QR");
 scores = fit_predict!(ii, X);
-ii_row_signs=[ICS.sign_max(ii.W_[i,:]) for i in 1:size(ii.W_,1)]
+ii_row_signs=[ICSTOOL.sign_max(ii.W_[i,:]) for i in 1:size(ii.W_,1)]
 ii_row_norms=sqrt.(sum(ii.W_.^2, dims=2))
 ii_W_final = (ii.W_ ./ (ii_row_signs .* ii_row_norms))
 
@@ -238,7 +238,7 @@ fig=outlier_plot(ics_qr; clusters=clusters, legend=:topright)
 using DataFrames
 using RCall
 using Test
-using ICS
+using ICSTOOL
 
 ## Load R libraries 
 R"library(ICSOutlier)"
