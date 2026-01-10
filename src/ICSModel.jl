@@ -34,7 +34,7 @@ on the underlying assumptions.
 It supports various scatter matrix calculations and offers multiple 
 algorithms for applying ICS.
 
-Parameters:
+# Parameters:
 
     S1 (function returning a scatter object): (default: cov2) Function to compute the first scatter matrix.
 
@@ -50,7 +50,8 @@ Parameters:
 
     S2_args (dict): Additional arguments for S2.
 
-Attributes:
+# Returns:
+    An object of class ICSModel with the following fields:
 
     `W_::Matrix{Float64}`: Transformation matrix in which each row contains the coefficients of the linear transformation to the corresponding invariant coordinate.
 
@@ -64,6 +65,8 @@ Attributes:
 
     `S1_X_::Any`: Fitted scatter S1. Defined only when center=True.
 
+# Details:
+
 Supported algorithms:
 
     1. standard: performs the spectral decomposition of the symmetric matrix :math:`S_1(X)^{-1/2}S_2(X)S_1(X)^{-1/2}`
@@ -75,7 +78,7 @@ Supported algorithms:
 
 See also [`cov2`](@ref), [`cov4`](@ref), [`covW`](@ref), [`covAxis`](@ref), [`tcov`](@ref).
 
-Examples:
+# Examples:
     
 ```julia
 using ICSTools, RDatasets
