@@ -1,11 +1,17 @@
+## Ctrl-shift-p   ==> Julia: Start REPL
+##
+## or Ctrl-alt-r
+##
+
 using Revise, Pkg
 Pkg.activate(".julia/dev/ICSTools")
 using ICSTools
+pkgversion(ICSTools)
 
 ## Workflow for parallel development with Robustbase
 using Revise, Pkg
 Pkg.develop(path=".julia/dev/Robustbase")        # added Robustbase to the development
-Pkg.activate(".julia/dev/ICSTools")                   # added ICSTools
+Pkg.activate(".julia/dev/ICSTools")              # added ICSTools
 using ICSTools
 
 ## To run the tests:
@@ -36,6 +42,7 @@ x = iris[:,1:4]
 X = Matrix(iris[:,1:4])
 
 ## Scatter
+using Robustbase
 X = Robustbase.hbk[:,1:3]
 
 using ICSTools
@@ -48,7 +55,13 @@ tcov(X)
 mcd_raw(X)
 mcd_rwt(X)
 
+tM(X, alg=:alg3)
+tM(X, alg=:alg1, df=2)
 mlc(X, alg=:alg3)
+
+lcov(X)
+lcov(X, mscatter=:mcd)
+lcov(X, mscatter=:mcd, covstandard=:trace)
 
 ##  ICSModel
 ics = ICSModel(S2=covW)
@@ -116,30 +129,6 @@ doTestScatter(X, which="tcov")
 doTestScatter(X, which="mlc-1")
 doTestScatter(X, which="mlc-2")
 doTestScatter(X, which="mlc-3")
-
-using StatsPlots
-X = rcopy(R"data('hbk', package='robustbase'); x=hbk[,1:3]");
-ics = ICSModel();
-scores = fit_predict!(ics, X);
-corrplot(scores, label=["x$i" for i=1:size(X, 2)])
-
-using CairoMakie
-using PairPlots
-
-ics = ICSModel(S2=cov4, algorithm="whiten");
-scores = fit_predict!(ics, X);
-
-pairplot(scores)
-pairplot((scores[1:14,:], scores[15:75,:]))
-
-pairplot(scores[1:14,:], scores[15:75,:] => 
-    (PairPlots.Scatter(color=:orange),
-     PairPlots.MarginDensity(),))
-
-
-ics = ICSModel(algorithm="standard");
-scores = fit_predict!(ics, X);
-
 
 ##=============================================
 ##
@@ -216,7 +205,7 @@ W_final=R"rx=ICS($X, algorithm = 'QR'); row_signs=apply(rx$W, 1L, ICS:::.sign.ma
 
 ii = ICSModel(S2=cov4, algorithm="QR");
 scores = fit_predict!(ii, X);
-ii_row_signs=[ICSTOOL.sign_max(ii.W_[i,:]) for i in 1:size(ii.W_,1)]
+ii_row_signs=[ICSTools.sign_max(ii.W_[i,:]) for i in 1:size(ii.W_,1)]
 ii_row_norms=sqrt.(sum(ii.W_.^2, dims=2))
 ii_W_final = (ii.W_ ./ (ii_row_signs .* ii_row_norms))
 
@@ -238,7 +227,7 @@ fig=outlier_plot(ics_qr; clusters=clusters, legend=:topright)
 using DataFrames
 using RCall
 using Test
-using ICSTOOL
+using ICSTools
 
 ## Load R libraries 
 R"library(ICSOutlier)"

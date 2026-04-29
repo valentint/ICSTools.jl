@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Valentin Todorov <valentin@todorov.at> and contributors"]
 
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
@@ -14,6 +15,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 
 [compat]
+CairoMakie = "0.15.8"
 DataFrames = "1.8.1"
 LinearAlgebra = "1.11.0"
 Makie = "0.24.6"

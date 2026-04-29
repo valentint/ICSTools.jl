@@ -42,16 +42,27 @@ ICSTools.mcd_raw
 ICSTools.mcd_rwt
 ```
 
+## Joint M-estimation of Location and Scatter for a Multivariate t-distribution: tM_base
+
+```@docs
+ICSTools.tM_base
+```
+
+## Multivariate t location and scatter estimates: tM
+```@docs
+ICSTools.tM
+```
+
 ## Cauchy location and scatter estimates: mlc
 ```@docs
 ICSTools.mlc
 ```
 
-## Joint M-estimation of Location and Scatter for a Multivariate t-distribution: tM
-
+## Aggregated standardised variance/covariance in a Mahalanobis neighbourhood of the data points: lcov
 ```@docs
-ICSTools.tM
+ICSTools.lcov
 ```
+
 # ICS Model
 
 ## Constructor for an ICS model

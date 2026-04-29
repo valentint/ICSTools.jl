@@ -66,6 +66,33 @@ using Random
         @test sprint(showerror, err) == "Invalid 'nsamp': can be either 'deterministic' or a number!"
     end
 
+    ## By default df=1, the result will be identical to mlc() - Cauchy
+    cc=tM(X, alg=:alg1);
+    @test isapprox(cc.location, [1.6089942229177603, 1.8875566256231056, 1.697445667934874])
+    @test isapprox(cc.scatter, [1.0790561468851574 0.525861733182914 0.8861365315136714; 0.525861733182914 1.9860137071985495 1.8536943735943225; 0.8861365315136714 1.8536943735943225 3.2277904870231016])
+
+    cc=tM(X, alg=:alg2);
+    @test isapprox(cc.location, [1.6089944684180306, 1.8875565779548642, 1.6974456466045007])
+    @test isapprox(cc.scatter, [1.0790542144871826 0.5258609121407963 0.8861350894035047; 0.5258609121407963 1.986010286964204 1.8536914124840267; 0.8861350894035047 1.8536914124840267 3.227785018207513])
+
+    cc=tM(X);  # alg=:alg3
+    @test isapprox(cc.location, [1.6089944684180306, 1.8875565779548642, 1.6974456466045007])
+    @test isapprox(cc.scatter, [1.0790542144871826 0.5258609121407963 0.8861350894035047; 0.5258609121407963 1.986010286964204 1.8536914124840267; 0.8861350894035047 1.8536914124840267 3.227785018207513])
+
+    let err = nothing
+        try
+            cc=tM(X, alg=:ALG4);
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Unknown algorithm: ALG4"
+    end
+
+    ## Try now with a different df: df=2
+    cc=tM(X, alg=:alg1, df=2);
+    @test isapprox(cc.location, [1.6414429593616735, 1.9667943152586904, 1.8667986930437515])
+    @test isapprox(cc.scatter, [1.5462723552899444 1.4504112341085256 2.2462226405213293; 1.4504112341085258 4.128687824334496 4.89804786445481; 2.246222640521329 4.89804786445481 7.816321748608018])
+
     cc=mlc(X, alg=:alg1);
     @test isapprox(cc.location, [1.6089942229177603, 1.8875566256231056, 1.697445667934874])
     @test isapprox(cc.scatter, [1.0790561468851574 0.525861733182914 0.8861365315136714; 0.525861733182914 1.9860137071985495 1.8536943735943225; 0.8861365315136714 1.8536943735943225 3.2277904870231016])
@@ -85,6 +112,22 @@ using Random
         end
         @test err isa Exception
         @test sprint(showerror, err) == "Unknown algorithm: ALG4"
+    end
+
+    cc=lcov(X, mscatter=:cov);
+    @test isapprox(cc.scatter, [15.5426637833787 15.903602459638135 25.33279576144533; 15.903602459638135 55.00119744877571 52.8324331841342; 25.33279576144533 52.8324331841342 93.37535405027133])
+
+    cc=lcov(X, mscatter=:mcd);
+    @test isapprox(cc.scatter, [37.94750861221169 7.481753641891189 1.9150407406935628; 7.481753641891189 27.33148595487913 0.9222050669425117; 1.9150407406935628 0.9222050669425117 27.860491905892317])
+
+
+    let err = nothing
+        try
+            cc=lcov(X, mscatter=:MCD);
+        catch err
+        end
+        @test err isa Exception
+        @test sprint(showerror, err) == "Unknown mscatter option: MCD"
     end
 
     end

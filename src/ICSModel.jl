@@ -76,7 +76,8 @@ Supported algorithms:
     3. QR: numerically stable algorithm based on the QR algorithm for a common family of scatter pairs: if S1 is cov(), and if S2 is one of cov4, covW, or covAxis. See Archimbaud et al. (2023) for details.
 
 
-See also [`cov2`](@ref), [`cov4`](@ref), [`covW`](@ref), [`covAxis`](@ref), [`tcov`](@ref).
+See also [`cov2`](@ref), [`cov4`](@ref), [`covW`](@ref), [`covAxis`](@ref), 
+    [`tcov`](@ref), [`tM`](@ref), [`mlc`](@ref), [`lcov`](@ref).
 
 # Examples:
     

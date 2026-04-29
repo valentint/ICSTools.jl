@@ -331,68 +331,7 @@ function mcd_rwt(X::Union{Matrix{Float64}, DataFrame};
 end
 
 """
-    mlc(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, 
-        alg::Symbol=:alg3, mu_init=nothing, V_init=nothing, gamma_init=nothing, 
-        eps=1e-6, maxiter=100)
-
-
-    Compute Cauchy location and scatter estimates
-    It is a wrapper for the Cauchy estimator of location and scatter for a 
-        multivariate t-distribution, as computed by tM().
-
-# Arguments:
-    X::Union{Matrix{Float64}, DataFrame}: The data matrix.
-    location::Bool (default=true): Whether to include the mean location.
-    alg::Symbol (default=:alg3): specifies which algorithm to use. Options are :alg1, :alg2 or :alg3. 
-    mu_init: initial value for the location vector if available.
-    V_init: initial value for the scatter matrix if available.
-    gamma_init: initial value for gamma if available. Only needed for alg2.
-    eps: convergence tollerance.
-    maxiter: maximum number of iterations.
-
-# Returns:
-    Scatter: An object containing the location (if reqested) and a numeric 
-        matrix giving the estimate of the scatter matrix.
-
-# Details:
-This function implements the EM algorithms described in Kent et al. (1994). 
-    The norm used to define convergence is as in Arslan et al. (1995).
-
-Algorithm 1 is valid for all degrees of freedom df > 0. 
-Algorithm 2 is well defined only for degrees of freedom df > 1. 
-Algorithm 3 is the limiting case of Algorithm 2 with degrees of freedom df = 1.
-
-The performance of the algorithms are compared in Arslan et al. (1995).
-
-# References:
-Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate t-distribution, Communications in Statistics, Simulation and Computation, 23, 441–453. <doi:10.1080/03610919408813180>.
-
-Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000. <doi:10.1080/03610929508831664>.
-
-"""
-function mlc(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, 
-    alg::Symbol=:alg3, mu_init=nothing, V_init=nothing, gamma_init=nothing, eps=1e-6, maxiter=100)
-
-    if X isa DataFrame
-        X = Matrix(X)
-    end
-
-    n, p = size(X)
-
-    mu_init === nothing && (mu_init = vec(mean(X, dims=1)))
-    V_init === nothing && (V_init = cov(X))
-
-    ## we fix the df to have only cauchy estimate
-    mu, V = tM(X; df=1, alg=alg, mu_init=mu_init, V_init=V_init, 
-        gamma_init=gamma_init, eps=eps, maxiter=maxiter)
-
-    location_ = location ? mu : nothing
-    return Scatter(location_, V, "MLC")
-
-end
-
-"""
-    tM(X; df::Real=1, alg::Symbol=:alg3, mu_init=nothing, V_init=nothing, 
+    tM_base(X; df::Real=1, alg::Symbol=:alg3, mu_init=nothing, V_init=nothing, 
         gamma_init=nothing, eps=1e-6, maxiter=100)
 
 
@@ -421,8 +360,10 @@ Compute joint M-estimation of Location and Scatter for a Multivariate t-distribu
 This function implements the EM algorithms described in Kent et al. (1994). 
     The norm used to define convergence is as in Arslan et al. (1995).
 
-Algorithm 1 is valid for all degrees of freedom df > 0. 
+Algorithm 1 is valid for all degrees of freedom df > 0.
+
 Algorithm 2 is well defined only for degrees of freedom df > 1. 
+
 Algorithm 3 is the limiting case of Algorithm 2 with degrees of freedom df = 1.
 
 The performance of the algorithms are compared in Arslan et al. (1995).
@@ -433,7 +374,7 @@ Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for 
 Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000. <doi:10.1080/03610929508831664>.
 
 """
-function tM(X; df::Real=1, alg::Symbol=:alg3, 
+function tM_base(X; df::Real=1, alg::Symbol=:alg3, 
     mu_init=nothing, V_init=nothing, gamma_init=nothing, eps=1e-6, maxiter=100)
 
     n, p = size(X)
@@ -457,7 +398,6 @@ function tM(X; df::Real=1, alg::Symbol=:alg3,
         error("Unknown algorithm: $alg")
     end
 end
-
 
 function norm_mu_V(a::AbstractVector, B::AbstractMatrix, A::AbstractMatrix)
     Ainv = inv(A)
@@ -573,3 +513,217 @@ function alg3(X, mu_init, V_init, nu, eps, maxiter)
     return (mu=mu, V=V, iter=iter)
 end
 
+"""
+    mlc(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, 
+        alg::Symbol=:alg3, mu_init=nothing, V_init=nothing, gamma_init=nothing, 
+        eps=1e-6, maxiter=100)
+
+
+    Compute Cauchy location and scatter estimates
+    It is a wrapper for the Cauchy estimator of location and scatter for a 
+        multivariate t-distribution, as computed by tM_base().
+
+# Arguments:
+    X::Union{Matrix{Float64}, DataFrame}: The data matrix.
+    location::Bool (default=true): Whether to include the mean location.
+    alg::Symbol (default=:alg3): specifies which algorithm to use. Options are :alg1, :alg2 or :alg3. 
+    mu_init: initial value for the location vector if available.
+    V_init: initial value for the scatter matrix if available.
+    gamma_init: initial value for gamma if available. Only needed for alg2.
+    eps: convergence tollerance.
+    maxiter: maximum number of iterations.
+
+# Returns:
+    Scatter: An object containing the location (if reqested) and a numeric 
+        matrix giving the estimate of the scatter matrix.
+
+# Details:
+This function implements the EM algorithms described in Kent et al. (1994). 
+    The norm used to define convergence is as in Arslan et al. (1995).
+
+Algorithm 1 is valid for all degrees of freedom df > 0. 
+
+Algorithm 2 is well defined only for degrees of freedom df > 1. 
+
+Algorithm 3 is the limiting case of Algorithm 2 with degrees of freedom df = 1.
+
+The performance of the algorithms are compared in Arslan et al. (1995).
+
+# References:
+Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate t-distribution, Communications in Statistics, Simulation and Computation, 23, 441–453. <doi:10.1080/03610919408813180>.
+
+Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000. <doi:10.1080/03610929508831664>.
+
+"""
+function mlc(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, 
+    alg::Symbol=:alg3, mu_init=nothing, V_init=nothing, gamma_init=nothing, eps=1e-6, maxiter=100)
+
+    if X isa DataFrame
+        X = Matrix(X)
+    end
+
+    n, p = size(X)
+
+    mu_init === nothing && (mu_init = vec(mean(X, dims=1)))
+    V_init === nothing && (V_init = cov(X))
+
+    ## we fix the df to have only cauchy estimate
+    mu, V = tM_base(X; df=1, alg=alg, mu_init=mu_init, V_init=V_init, 
+        gamma_init=gamma_init, eps=eps, maxiter=maxiter)
+
+    location_ = location ? mu : nothing
+    return Scatter(location_, V, "MLC")
+
+end
+
+"""
+    tM(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, 
+        alg::Symbol=:alg3, mu_init=nothing, V_init=nothing, gamma_init=nothing, 
+        eps=1e-6, maxiter=100)
+
+
+    Compute multivariate t location and scatter estimates
+    It is a wrapper for the M-estimator of location and scatter 
+        for a multivariate t-distribution, as computed by tM_base().
+
+# Arguments:
+    X::Union{Matrix{Float64}, DataFrame}: The data matrix.
+    location::Bool (default=true): Whether to include the mean location.
+    df::Int (default=1) assumed degrees of freedom of the t-distribution (default to 1, 
+        which corresponds to the Cauchy distribution).
+    alg::Symbol (default=:alg3): specifies which algorithm to use. Options are :alg1, :alg2 or :alg3. 
+    mu_init: initial value for the location vector if available.
+    V_init: initial value for the scatter matrix if available.
+    gamma_init: initial value for gamma if available. Only needed for alg2.
+    eps: convergence tollerance.
+    maxiter: maximum number of iterations.
+
+# Returns:
+    Scatter: An object containing the location (if reqested) and a numeric 
+        matrix giving the estimate of the scatter matrix.
+
+# Details:
+This function implements the EM algorithms described in Kent et al. (1994). 
+    The norm used to define convergence is as in Arslan et al. (1995).
+
+Algorithm 1 is valid for all degrees of freedom df > 0. 
+
+Algorithm 2 is well defined only for degrees of freedom df > 1. 
+    
+Algorithm 3 is the limiting case of Algorithm 2 with degrees of freedom df = 1.
+
+The performance of the algorithms are compared in Arslan et al. (1995).
+
+# References:
+Kent, J.T., Tyler, D.E. and Vardi, Y. (1994), A curious likelihood identity for the multivariate t-distribution, Communications in Statistics, Simulation and Computation, 23, 441–453. <doi:10.1080/03610919408813180>.
+
+Arslan, O., Constable, P.D.L. and Kent, J.T. (1995), Convergence behaviour of the EM algorithm for the multivariate t-distribution, Communications in Statistics, Theory and Methods, 24, 2981–3000. <doi:10.1080/03610929508831664>.
+
+"""
+function tM(X::Union{Matrix{Float64}, DataFrame}; location::Bool=true, df::Int=1, 
+    alg::Symbol=:alg3, mu_init=nothing, V_init=nothing, gamma_init=nothing, eps=1e-6, maxiter=100)
+
+    if X isa DataFrame
+        X = Matrix(X)
+    end
+
+    n, p = size(X)
+
+    mu_init === nothing && (mu_init = vec(mean(X, dims=1)))
+    V_init === nothing && (V_init = cov(X))
+
+    mu, V = tM_base(X; df=df, alg=alg, mu_init=mu_init, V_init=V_init, 
+        gamma_init=gamma_init, eps=eps, maxiter=maxiter)
+
+    location_ = location ? mu : nothing
+    return Scatter(location_, V, "MLT")
+
+end
+
+"""
+    lcov(X::Union{Matrix{Float64}, DataFrame}; 
+        proportion=0.1, mscatter::Symbol=:cov, mcdalpha=0.8, covstandard::Symbol=:det)
+
+    Compute aggregated standardised variance/covariance in a Mahalanobis neighbourhood 
+        of the data points. This can be used for finding clusters when used as one of 
+        the covariance matrices in Invariant Coordinate Selection (function ICSModel() in package ICSTools).
+        For an example in R see Hennig's discussion and rejoinder of Tyler et al. (2009).
+        See also the function 'localshape' in the R package 'fpc'
+
+# Arguments:
+    X::Union{Matrix{Float64}, DataFrame}: The data matrix.
+    proportion::Real (default=0.1): proportion of points to be considered as neighbourhood
+    mscatter::Symbol (default=:cov) :mcd or :cov; specified minimum covariance determinant or 
+        classical covariance matrix to be used for Mahalanobis distance computation
+    mcdalpha::Real: (default=0.8) if mscatter=:mcd, this is the alpha parameter to be used 
+        by the MCD covariance matrix, i.e. one minus the asymptotic breakdown point, 
+        see Robustbase.CovMcd
+    covstandard::Symbol: (default=:det) one of :trace, :det or :none, determining by what 
+        constant the pointwise neighbourhood covariance matrices are standardised. 
+        :det makes it affine equivariant, as noted in the discussion rejoinder of Tyler et al. (2009).
+
+# Returns:
+    Scatter: An object containing a numeric 
+        matrix giving the estimate of the scatter matrix.
+
+# Details:
+
+# References:
+Tyler, D. E., Critchley, F., Duembgen, L., Oja, H. (2009) Invariant coordinate selection 
+    (with discussion). Journal of the Royal Statistical Society, Series B, 549-592.
+"""
+function lcov(X::Union{Matrix{Float64}, DataFrame}; 
+        proportion=0.1, mscatter::Symbol=:cov, mcdalpha=0.8, covstandard::Symbol=:det)
+
+    if X isa DataFrame
+        X = Matrix(X)
+    end
+
+    ## Scatter matrix selection
+    scatter = if mscatter == :mcd
+        mcd = CovMcd(alpha=mcdalpha)
+        Robustbase.fit!(mcd, X)
+        covariance(mcd)
+    elseif mscatter == :cov
+        cov(X)
+    else
+        error("Unknown mscatter option: $mscatter")
+    end
+
+    n, p = size(X)
+    np = round(Int, proportion * n)
+
+    # Mahalanobis distance matrix
+    mmatrix = zeros(n, n)
+    inv_scatter = inv(scatter)
+
+    for i in 1:n
+        diff = X .- X[i, :]'
+        # Compute squared Mahalanobis distances row-wise
+        mmatrix[i, :] = vec(sum((diff * inv_scatter) .* diff, dims=2))
+    end
+
+    # Local covariance accumulation
+    lcov = zeros(p, p)
+
+    for i in 1:n
+        idx = sortperm(mmatrix[i, :])[1:np]
+        xc = cov(X[idx, :])
+
+        if covstandard == :trace
+            xc = xc / sum(diag(xc))
+        elseif covstandard == :det
+            xc = xc / det(xc)
+        elseif covstandard == :none
+            # do nothing
+        else
+            error("Unknown covstandard option: $covstandard")
+        end
+
+        lcov += xc
+    end
+
+    lcov /= n
+
+    return Scatter(nothing, lcov, "LCOV")
+end
