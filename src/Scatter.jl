@@ -24,13 +24,13 @@ function Base.show(io::IO, mime::MIME"text/plain", obj::Scatter)
     println(io, "-> Scatter: " , obj.label)
     
     if !isnothing(obj.location)
-        println("Location:")
-        println(IOContext(stdout, :compact=>true), obj.location)
+        println(io, "Location:")
+        println(io, IOContext(stdout, :compact=>true), obj.location)
     end
 
-    println()
+    println(io)
     println(io, "Scatter:")
-    Base.show(stdout, mime, obj.scatter)
+    Base.show(io, mime, obj.scatter)
 end
 
 function print_object(io::IO, obj::Scatter; multiline::Bool)

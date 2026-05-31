@@ -277,7 +277,7 @@ component_plot2(ics, clusters=clusters)
 
 
 
-using CairoMakie
+using GLMakie
 using PairPlots
 select = 1:2
 ss = DataFrame(scores, ["IC$i" for i=1:size(scores,2)])
@@ -354,44 +354,51 @@ ss = DataFrame(scores, ["IC$i" for i=1:size(scores,2)])
 
 pairplot(scores)
 
-fig=pairplot(ss[clusters1 .== "Adelie", :], 
-          ss[clusters1 .== "Chinstrap", :],
-          ss[clusters1 .== "Gentoo", :] =>
-         (
-            PairPlots.Scatter(markersize=10),
-            PairPlots.MarginHist()
-         ), 
-          fullgrid=true)
+## Pair plots grouped by species
 
-
-            
-table1 = (;
-    x = randn(1000),
-    y = randn(1000),
+fig = pairplot(
+    ss[species .== "Adelie", :] => (
+        PairPlots.Scatter(markersize=8),
+        PairPlots.MarginDensity(),
+    ),
+    ss[species .== "Chinstrap", :] => (
+        PairPlots.Scatter(markersize=8),
+        PairPlots.MarginDensity(),
+    ),
+    ss[species .== "Gentoo", :] => (
+        PairPlots.Scatter(markersize=8),
+        PairPlots.MarginDensity(),
+    ),
+    fullgrid=true
 )
 
-table2 = (;
-    x = 1 .+ randn(1000),
-    y = 2 .+ randn(1000),
-    z = randn(1000),
+## Pair plots grouped by sex
+fig = pairplot(
+    ss[sex .== "male", :] => (
+        PairPlots.Scatter(markersize=8),
+        PairPlots.MarginDensity(),
+    ),
+    ss[sex .== "female", :] => (
+        PairPlots.Scatter(markersize=8),
+        PairPlots.MarginDensity(),
+    ),
+    fullgrid=true
 )
-
-fig = pairplot(table1, table2)
-                    
+                   
 fig =pairplot(
-    PairPlots.Series(ss[clusters1 .== "Adelie", :], color=Makie.wong_colors(0.5)[1]) => (
+    PairPlots.Series(ss[species .== "Adelie", :], color=Makie.wong_colors(0.5)[1]) => (
         PairPlots.Scatter(markersize=8),
         PairPlots.MarginDensity(
             linewidth=2.5f0
         )
     ),
-    PairPlots.Series(ss[clusters1 .== "Chinstrap", :], color=Makie.wong_colors(0.5)[2]) => (
+    PairPlots.Series(ss[species .== "Chinstrap", :], color=Makie.wong_colors(0.5)[2]) => (
         PairPlots.Scatter(markersize=8),
         PairPlots.MarginDensity(
             linewidth=2.5f0
         )
     ),
-    PairPlots.Series(ss[clusters1 .== "Gentoo", :], color=Makie.wong_colors(0.5)[3]) => (
+    PairPlots.Series(ss[species .== "Gentoo", :], color=Makie.wong_colors(0.5)[3]) => (
         PairPlots.Scatter(markersize=8),
         PairPlots.MarginDensity(
             linewidth=2.5f0
@@ -400,17 +407,17 @@ fig =pairplot(
 )
 
 fig=pairplot(
-    ss[clusters1 .== "Adelie", :] => (
+    ss[species .== "Adelie", :] => (
         PairPlots.Scatter(markersize=8),
-        PairPlots.MarginDensity(),
+        PairPlots.MarginDensity(linewidth=2.5f0),
     ),
-    ss[clusters1 .== "Chinstrap", :] => (
+    ss[species .== "Chinstrap", :] => (
         PairPlots.Scatter(markersize=8),
-        PairPlots.MarginDensity(),
+        PairPlots.MarginDensity(linewidth=2.5f0),
     ),
-    ss[clusters1 .== "Gentoo", :] => (
+    ss[species .== "Gentoo", :] => (
         PairPlots.Scatter(markersize=8),
-        PairPlots.MarginDensity(),
+        PairPlots.MarginDensity(linewidth=2.5f0),
     ),
     fullgrid=true
 )
