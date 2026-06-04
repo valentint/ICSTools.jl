@@ -49,4 +49,24 @@ scree_plot(ics)
 component_plot2(ics)                # by default the first two components
 
 component_plot2(ics, select=[3,4])  # select components 3 and 4
+``` 
+
+# Contributing
+
+
+# Citation 
+If you use this software, please cite:
+
+Todorov, V. (2026). Tools for Exploring Multivariate Data: The Invariant Coordinate Selection (ICS) Method.
+
+or in ```BibTeX``` format:
+
+```
+@software{ICSTools.jl,
+    author = {Valentin Todorov},
+    doi = {10.5281/zenodo.20476499},
+    license = {["MIT"]},
+    title = {{Tools for Exploring Multivariate Data: The Invariant Coordinate Selection (ICS) Method}},
+    year = 2025,
+    url = {https://valentint.github.io/ICSTools.jl/dev/}}
 ```
