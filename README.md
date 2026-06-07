@@ -71,7 +71,7 @@ component_plot2(ics, select=[3,4])  # select components 3 and 4
 If you use this software, please cite:
 
 Todorov, V. (2026). Tools for Exploring Multivariate Data: The Invariant Coordinate Selection (ICS) Method.
-URL https://valentint.github.io/ICSTools.jl/dev/. doi:10.5281/zenodo.20476499.
+URL https://valentint.github.io/ICSTools.jl/stable/. doi:10.5281/zenodo.20476499.
 
 
 or in ```BibTeX``` format:
@@ -83,7 +83,7 @@ or in ```BibTeX``` format:
     license = {["MIT"]},
     title = {{Tools for Exploring Multivariate Data: The Invariant Coordinate Selection (ICS) Method}},
     year = 2026,
-    url = {https://valentint.github.io/ICSTools.jl/dev/}}
+    url = {https://valentint.github.io/ICSTools.jl/stable/}}
 ```
 
 ## Community guidelines
